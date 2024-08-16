@@ -1,0 +1,348 @@
+
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import styled from 'styled-components';
+import shipImage from '../assets/spaceAssets/Ship.png';
+import bulletImage from '../assets/spaceAssets/bullet.png';
+import shootSound from '../assets/spaceAssets/FighterBullet.mp3';
+import killSound from '../assets/spaceAssets/killSound.mp3';
+import killSound2 from '../assets/spaceAssets/killSound2.mp3';
+
+// Styled components
+const GameContainer = styled.div`
+  width: 100%;
+  height: 400px;
+  position: relative;
+  overflow: hidden;
+  background-color: #000;
+`;
+
+const GameBorder = styled.div`
+  width: 32%;
+  height: 395px;
+  position: relative;
+  overflow: hidden;
+  border: 2px solid #ff000028;
+`;
+
+const Ship = styled.div.attrs((props) => ({
+  style: {
+    left: `${props.$left}px`,
+    top: `${props.$top}px`,
+  },
+}))`
+  width: 100px;
+  height: 100px;
+  background-image: url(${shipImage});
+  background-size: cover;
+  position: absolute;
+  transform: rotate(90deg);
+`;
+
+const Bullet = styled.div.attrs((props) => ({
+  style: {
+    left: `${props.$left}px`,
+    top: `${props.$top}px`,
+  },
+}))`
+  width: 35px;
+  height: 70px;
+  background-image: url(${bulletImage});
+  background-size: cover;
+  position: absolute;
+  transform: rotate(90deg);
+`;
+
+const Invader = styled.div.attrs((props) => ({
+  style: {
+    left: `${props.$left}px`,
+    top: `${props.$top}px`,
+    backgroundColor: props.$color,
+    border: '2px solid white'
+  },
+}))`
+  width: 70px;
+  height: 70px;
+  position: absolute;
+  border-radius: 20px;
+`;
+
+// InvaderNode class for linked list
+class InvaderNode {
+  constructor(id, left, top, color, velocityY = 0.5) {
+    this.id = id;
+    this.left = left;
+    this.top = top;
+    this.color = color;
+    this.velocityY = velocityY; // Velocity in the Y direction
+    this.next = null; // Pointer to the next node (invader)
+  }
+}
+
+// Galaga component
+const Galaga = () => {
+  const [shipPosition, setShipPosition] = useState({ left: 10, top: 150 });
+  const [targetShipPosition, setTargetShipPosition] = useState({ left: 10, top: 150 });
+  const [invaders, setInvaders] = useState(null); // Initialize as null for the linked list
+  const [bullets, setBullets] = useState([]);
+  const [canShoot, setCanShoot] = useState(true);
+  const requestRef = useRef();
+  const containerRef = useRef();
+
+  // Initialize invaders as a linked list
+  const initializeInvaders = useCallback(() => {
+    const numColumns = 6;
+    const numRows = 4;
+    const invaderSize = 70;
+    const spacing = 25;
+
+    const containerRect = containerRef.current.getBoundingClientRect();
+    const startX = containerRect.width - (numColumns * (invaderSize + spacing)) - 20;
+
+    let head = null;
+    let previousNode = null;
+
+    for (let col = numColumns - 1; col >= 0; col--) {
+      for (let row = ((col % 2) === (numColumns % 2) ? 0 : numRows - 1); (col % 2 === numColumns % 2 ? row < numRows : row >= 0); (col % 2 === numColumns % 2 ? row++ : row--)) {
+        let tempRows = ((col % 2) === (numColumns % 2) ? numRows - row - 1 : row)
+        /**
+         * Represents a new InvaderNode.
+         *
+         * @param {number} id - The ID of the InvaderNode.
+         * @param {number} x - The x-coordinate of the InvaderNode.
+         * @param {number} y - The y-coordinate of the InvaderNode.
+         * @param {string} color - The color of the InvaderNode in RGB format.
+         * @returns {InvaderNode} The newly created InvaderNode.
+         */
+        const newNode = new InvaderNode(
+          numColumns * numRows - numRows * (numColumns - col) + row + 1,
+          startX + col * (invaderSize + spacing),
+          20 + tempRows * (invaderSize + spacing),
+          `rgb(${(numColumns * numRows - numRows * (numColumns - col) + row + 1) * 10}, ${255-(numColumns * numRows - numRows * (numColumns - col) + row + 1) * 10}, ${255})`,
+        );
+
+        if (head === null) {
+          head = newNode;
+        } else {
+          previousNode.next = newNode;
+        }
+
+        previousNode = newNode;
+      }
+
+    }
+
+    setInvaders(head);
+  }, []);
+
+  useEffect(() => {
+    initializeInvaders();
+  }, [initializeInvaders]);
+
+  const updateInvadersPosition = useCallback(() => {
+    const invaderSize = 70;
+    const containerHeight = containerRef.current.getBoundingClientRect().height;
+    const columnBoundaries = {};
+    const columnDirections = {}; // Track direction for each column
+      
+    if (!invaders) return; // Exit if there are no invaders
+  
+    // Initialize boundaries and direction for each invader's column
+    let current = invaders;
+    while (current) {
+      const columnId = current.id;
+  
+      if (!(columnId in columnBoundaries)) {
+        columnBoundaries[columnId] = {
+          top: current.top,
+          bottom: current.top + invaderSize
+        };
+        columnDirections[columnId] = current.velocityY; // Initialize direction
+      } else {
+        // Update boundaries if necessary
+        columnBoundaries[columnId].top = Math.min(columnBoundaries[columnId].top, current.top);
+        columnBoundaries[columnId].bottom = Math.max(columnBoundaries[columnId].bottom, current.top + invaderSize);
+      }
+  
+      current = current.next;
+    }
+  
+    // Move invaders and check for boundary collisions
+    current = invaders;
+    while (current) {
+      const columnId = current.id;
+      // Move invaders in the column based on direction
+      current.top += columnDirections[columnId];
+  
+      // Check for column boundary collisions
+      if (current.top <= 0 || current.top + invaderSize >= containerHeight) {
+        // Reverse direction for all invaders in the same column
+        let columnHead = invaders;
+        while (columnHead) {
+          if (columnHead.id === columnId) {
+            columnHead.velocityY *= -1; // Reverse direction
+          }
+          columnHead = columnHead.next;
+        }
+      }
+  
+      current = current.next;
+    }
+  }, [invaders]);
+  
+  
+  const moveObjects = useCallback(() => {
+    const bulletSpeed = 10;
+    const containerRect = containerRef.current.getBoundingClientRect();
+
+    setBullets((currentBullets) =>
+      currentBullets
+        .map((bullet) => ({
+          ...bullet,
+          left: bullet.left + bulletSpeed,
+        }))
+        .filter((bullet) => bullet.left < containerRect.width)
+    );
+
+    updateInvadersPosition(); // Update invader positions
+
+    requestRef.current = requestAnimationFrame(moveObjects);
+  }, [updateInvadersPosition]);
+
+  useEffect(() => {
+    requestRef.current = requestAnimationFrame(moveObjects);
+    return () => cancelAnimationFrame(requestRef.current);
+  }, [moveObjects]);
+
+  // Handle shooting
+  const handleShoot = useCallback(() => {
+    if (canShoot) {
+      const audio = new Audio(shootSound);
+      audio.play();
+
+      setBullets((prevBullets) => [
+        ...prevBullets,
+        { id: Date.now(), left: shipPosition.left + 80, top: shipPosition.top + 12 },
+      ]);
+      setCanShoot(false);
+      setTimeout(() => setCanShoot(true), 150);
+    }
+  }, [canShoot, shipPosition]);
+
+  // Handle mouse movement
+  const handleMouseMove = useCallback((e) => {
+    const containerRect = containerRef.current.getBoundingClientRect();
+    const newX = e.clientX - containerRect.left - 25;
+    const newY = e.clientY - containerRect.top - 25;
+
+    const constrainedX = Math.max(-10, Math.min(newX, containerRect.width - containerRect.width / 4 * 3));
+    const constrainedY = Math.max(-5, Math.min(newY, containerRect.height - 100));
+
+    setTargetShipPosition({ left: constrainedX, top: constrainedY });
+  }, []);
+
+  useEffect(() => {
+    const smoothMoveShip = () => {
+      setShipPosition((prevPosition) => {
+        const targetPosition = targetShipPosition;
+        const deltaX = targetPosition.left - prevPosition.left;
+        const deltaY = targetPosition.top - prevPosition.top;
+        return {
+          left: prevPosition.left + deltaX * 0.2,
+          top: prevPosition.top + deltaY * 0.2,
+        };
+      });
+
+      requestRef.current = requestAnimationFrame(smoothMoveShip);
+    };
+
+    const animationId = requestAnimationFrame(smoothMoveShip);
+    return () => cancelAnimationFrame(animationId);
+  }, [targetShipPosition]);
+
+  // Handle key press for shooting
+  useEffect(() => {
+    const handleKeyPress = (e) => {
+      if (e.key === ' ') {
+        handleShoot();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [handleShoot]);
+
+  // Handle collision detection and invader respawn
+  useEffect(() => {
+    bullets.forEach((bullet) => {
+      let previous = null;
+      let current = invaders;
+
+      while (current) {
+        if (
+          bullet.left + 35 >= current.left &&
+          bullet.left <= current.left + 40 &&
+          bullet.top + 40 >= current.top &&
+          bullet.top <= current.top + 40
+        ) {
+          const audio = new Audio(Math.random() < 0.5 ? killSound : killSound2);
+          audio.play();
+
+          // Remove the hit invader
+          if (previous) {
+            previous.next = current.next;
+          } else {
+            setInvaders(current.next); // If head is hit, update head
+          }
+
+          // Add a new invader at the end of the list
+          let tail = invaders;
+          while (tail.next) {
+            tail = tail.next;
+          }
+          tail.next = new InvaderNode(
+            Date.now(),
+            containerRef.current.getBoundingClientRect().width - 70 - 20,
+            20,
+            `rgb(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255})`
+          );
+
+          // Remove the bullet that hit the invader
+          setBullets((currentBullets) => currentBullets.filter((b) => b.id !== bullet.id));
+
+          break; // Exit the loop after the first collision
+        }
+
+        previous = current;
+        current = current.next;
+      }
+    });
+  }, [bullets, invaders]);
+
+  return (
+    <GameContainer ref={containerRef} onMouseMove={handleMouseMove} onClick={handleShoot}>
+      <GameBorder />
+      <Ship $left={shipPosition.left} $top={shipPosition.top} />
+      {bullets.map((bullet) => (
+        <Bullet key={bullet.id} $left={bullet.left} $top={bullet.top} />
+      ))}
+      {(() => {
+        const invaderElements = [];
+        let current = invaders;
+        while (current) {
+          invaderElements.push(
+            <Invader
+              key={current.id}
+              $color={current.color}
+              $top={current.top}
+              $left={current.left}
+            />
+          );
+          current = current.next;
+        }
+        return invaderElements;
+      })()}
+    </GameContainer>
+  );
+};
+
+export default Galaga;
