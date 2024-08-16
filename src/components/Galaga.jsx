@@ -104,8 +104,8 @@ const Galaga = () => {
 
   // Initialize timers
   const initializeTimers = useCallback(() => {
-    const numColumns = 2;
-    const numRows = 1;
+    const numColumns = 1;
+    const numRows = 4;
     const invaderSize = 70;
     const spacing = 25;
 
@@ -121,7 +121,7 @@ const Galaga = () => {
           left: startX + col * (invaderSize + spacing),
           top: 20 + row * (invaderSize + spacing),
           color: `rgb(${(col * numRows + row + 1) * 10}, ${255 - (col * numRows + row + 1) * 10}, 255)`,
-          velocityY: 0.0105 * (col % 2 === 0 ? 1 : -1), // Alternating direction per column
+          velocityY: 0.5, // Alternating direction per column
         });
       }
     }
@@ -162,49 +162,51 @@ const Galaga = () => {
   }, [initializeInvaders, initializeTimers]);
 
   const updateInvadersPosition = useCallback(() => {
-    setInvaders((currentInvaders) => {
-      return currentInvaders.map((invader) => {
-        let newTopi = invader.top + invader.velocityY;
-
-        setTimers((currentTimers) => {
-          return currentTimers.map((timer, index) => {
-            let newTop = timer.top + timer.velocityY;
-    
-            if (newTop <= 0) {
-              // Reverse direction of the current invader
-              timer.velocityY *= -1;
-              newTop = timer.top + timer.velocityY;
-              
-    
-              // Check the index of the current invader
-              const currentIndex = currentTimers.findIndex((inv) => inv.id === timer.id);
-              console.log("Current invader index:", currentIndex);
-
-              currentTimers[index === 0 ? 1 : 0].velocityY *= -1;
-    
-              // Reverse direction of the three preceding invaders if they exist
-              if ((index) === 0) {
-                for (let i = 0; i <= 23; i++) {
-                    currentInvaders[i].velocityY *= -1;
-                }
-              }
-              if ((index) === 1) {
-                for (let i = 0; i <= 23; i++) {
-                    currentInvaders[i].velocityY *= -1;
-                }
-              }
-            }
-    
-            return { ...timer, top: newTop };
-
-
-        
+    setTimers((currentTimers) => {
+      let globalVelocityChange = false;
+      let newVelocityY = 0;
+  
+      const updatedTimers = currentTimers.map((timer) => {
+        let newTop = timer.top + timer.velocityY;
+  
+        if (newTop <= 0 || newTop + 74  >= containerRef.current.clientHeight) {
+          // Reverse direction of all timers
+          newVelocityY = timer.velocityY * -1;
+          globalVelocityChange = true; // Indicate that we need to change all timers' and invaders' velocity
+        }
+  
+        return { ...timer, top: newTop, velocityY: globalVelocityChange ? newVelocityY : timer.velocityY };
       });
+  
+      if (globalVelocityChange) {
+        // Apply the velocity change to all timers and invaders
+        setTimers((currentTimers) => {
+          return currentTimers.map((timer) => ({
+            ...timer,
+            velocityY: newVelocityY,
+          }));
+        });
+  
+        setInvaders((currentInvaders) => {
+          return currentInvaders.map((invader) => ({
+            ...invader,
+            velocityY: invader.velocityY * -1,
+          }));
+        });
+      }
+  
+      return updatedTimers;
     });
-      return { ...invader, top: newTopi };
-    }, []);
-  });
-}, []);
+  
+    setInvaders((currentInvaders) => {
+      return currentInvaders.map((invader) => ({
+        ...invader,
+        top: invader.top + invader.velocityY,
+      }));
+    });
+  }, []);
+  
+
 
   const moveObjects = useCallback(() => {
     const bulletSpeed = 10;
