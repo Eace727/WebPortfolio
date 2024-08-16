@@ -75,20 +75,11 @@ const Timer = styled.div.attrs((props) => ({
   style: {
     left: `${props.$left}px`,
     top: `${props.$top}px`,
-    backgroundColor: props.$color,
-    border: '2px solid white'
   }
 }))`
   width: 70px;
   height: 70px;
-  position: absolute;
-  border-radius: 20px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  color: white;
-  font-size: 20px;
-  font-weight: bold;
+
 `;
 
 // Galaga component
@@ -120,7 +111,6 @@ const Galaga = () => {
           id: col * numRows + row + 1,
           left: startX + col * (invaderSize + spacing),
           top: 20 + row * (invaderSize + spacing),
-          color: `rgb(${(col * numRows + row + 1) * 10}, ${255 - (col * numRows + row + 1) * 10}, 255)`,
           velocityY: 0.5, // Alternating direction per column
         });
       }
@@ -143,13 +133,13 @@ const Galaga = () => {
 
     for (let col = 0; col < numColumns; col++) {
       for (let row = 0; row < numRows; row++) {
-        newInvaders.push({
-          id: col * numRows + row + 1,
-          left: startX + col * (invaderSize + spacing),
-          top: 20 + row * (invaderSize + spacing),
-          color: `rgb(${(col * numRows + row + 1) * 10}, ${255 - (col * numRows + row + 1) * 10}, 255)`,
-          velocityY: 0.5 * (col % 2 === 0 ? 1 : -1),
-        });
+      newInvaders.push({
+        id: col * numRows + row + 1,
+        left: startX + col * (invaderSize + spacing),
+        top: 20 + row * (invaderSize + spacing),
+        image: `url(../assets/icons${col * numRows + row + 1}.png)`,
+        velocityY: 0.5 * (col % 2 === 0 ? 1 : -1),
+      });
       }
     }
 
@@ -330,14 +320,13 @@ const Galaga = () => {
           {index} {/* Display the invader ID */}
         </Invader>
       ))}
-      {timers.map((timer, index) => (
+      {timers.map((timer) => (
         <Timer
           key={timer.id}
           $color={timer.color}
           $top={timer.top}
           $left={timer.left}
         >
-          {index} {/* Display the timer ID */}
         </Timer>
       ))}
     </GameContainer>
@@ -345,3 +334,9 @@ const Galaga = () => {
 };
 
 export default Galaga;
+
+// todo
+// add score
+// add hud
+// add respawn system
+// invader sprites
