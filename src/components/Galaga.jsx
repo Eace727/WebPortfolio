@@ -308,6 +308,8 @@ const Galaga = () => {
   }, [handleShoot]);
 
 // Handle collision detection, invader respawn, and transparency logic
+const lastBulletId = useRef(0);
+
 useEffect(() => {
   bullets.forEach((bullet) => {
     setInvaders((currentInvaders) => {
@@ -320,10 +322,12 @@ useEffect(() => {
           !invader.isShielded // Check if the invader is not shielded
         ) {
           const audio = new Audio(Math.random() > 0.5 ? killSound : killSound2);
-          audio.play();
-          // Remove the bullet after collision
-          setBullets((currentBullets) => currentBullets.filter((b) => b.id !== bullet.id));
           
+          bullet.id === lastBulletId.current ? lastBulletId.current = bullet.id : audio.play();
+          lastBulletId.current = bullet.id;
+
+            setBullets((currentBullets) => currentBullets.filter((b) => b.id !== bullet.id));
+
           // Mark invader as hit
           const updatedInvader = {
             ...invader,
@@ -331,7 +335,6 @@ useEffect(() => {
             opacity: 0.05, // Make the invader semi-transparent
             isShielded: true, // Make the invader immune to further hits
           };
-          
           // Set a timeout to revert the opacity and remove immunity
           setTimeout(() => {
             setInvaders((currentInvaders) =>
@@ -346,7 +349,7 @@ useEffect(() => {
           
           return updatedInvader;
         }
-
+      
         return invader;
       });
     });
