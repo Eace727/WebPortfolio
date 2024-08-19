@@ -35,7 +35,7 @@ const GameContainer = styled.div`
 `;
 
 const GameBorder = styled.div`
-  width: 30.4%;
+  width: 23%;
   height: 396px;
   position: static;
   overflow: hidden;
@@ -44,13 +44,58 @@ const GameBorder = styled.div`
 
 const Description = styled.div`
 top: 80px;
-left: 34%;
-width: 39%;
-height: 275px;
+left: 60%;
+width: 38%;
+height: 280px;
 position: absolute;
 overflow: hidden;
 border: 2px solid #ffffff;
 border-radius: 50px;
+`;
+
+const DescriptionIcon = styled.div.attrs((props) => ({
+  style: {
+    backgroundImage: `url(${defaultinvader}), linear-gradient(to bottom, #0000ff, #CEC2D6)`,
+  }}))`
+  left: 20px;
+  top: 20px;
+  position: absolute;
+  width: 22%;
+  height: 40%;
+  border: 2px solid #ffffff;
+  border-radius: 30px;
+`;
+
+const FrontEnd = styled.div.attrs((props) => ({
+  style: {
+  }
+}))`
+  position: absolute;
+  left: 30%;
+  top: 20px;
+  width: 64%;
+  height: 40%;
+  border: 2px solid #ffffff;
+  border-radius: 20px;
+`;
+
+const BackEnd = styled.div.attrs((props) => ({
+  style: {
+  }
+}))`
+`;
+
+const CloudDevops = styled.div.attrs((props) => ({
+  style: {
+
+  }
+}))`
+`;
+
+const Management = styled.div.attrs((props) => ({
+  style: {
+  }
+}))`
 `;
 
 const Ship = styled.div.attrs((props) => ({
@@ -119,7 +164,7 @@ const Timer = styled.div.attrs((props) => ({
 const HUD = styled.div`
   position: absolute;
   top: 0px;
-  left: 32%;
+  left: 24%;
   color: red;
   font-size: 20px;
   font-family: 'Emulogic', sans-serif;
@@ -128,7 +173,7 @@ const HUD = styled.div`
 const Score = styled.div`
   position: absolute;
   top: 25px;
-  left: 32%;
+  left: 24%;
   color: white;
   font-size: 20px;
   font-family: 'Emulogic', sans-serif;
@@ -167,14 +212,14 @@ const Galaga = () => {
 
   // Initialize invaders
   const initializeInvaders = useCallback(() => {
-    const numColumns = 3;
+    const numColumns = 4;
     const numRows = 4;
     const invaderSize = 70;
     const spacing = 25;
     const defaultProfile = { image: defaultinvader};
   
     const containerRect = containerRef.current.getBoundingClientRect();
-    const startX = containerRect.width - (numColumns * (invaderSize + spacing)) - 20;
+    const startX = containerRect.width - 515 - (numColumns * (invaderSize + spacing)) - 20;
   
     const shuffledProfiles = shuffle([...uniqueInvaderProfiles]);
     const newInvaders = [];
@@ -323,7 +368,7 @@ const Galaga = () => {
     const newX = e.clientX - containerRect.left - 25;
     const newY = e.clientY - containerRect.top - 50;
 
-    const constrainedX = Math.max(-10, Math.min(newX, containerRect.width - containerRect.width / 4 * 3));
+    const constrainedX = Math.max(-10, Math.min(newX, containerRect.width - containerRect.width / 6 * 5));
     const constrainedY = Math.max(-5, Math.min(newY, containerRect.height - 90));
 
     setTargetShipPosition({ left: constrainedX, top: constrainedY });
@@ -418,13 +463,13 @@ const handleRespawn = () => {
   setTimeout(() => {
     // Randomize positions
     setInvaders((currentTimers) => {
-      const numColumns = 3;
+      const numColumns = 4;
       const numRows = 4;
       const invaderSize = 70;
       const spacing = 25;
 
       const containerRect = containerRef.current.getBoundingClientRect();
-      const startX = containerRect.width - (numColumns * (invaderSize + spacing)) - 20;
+      const startX = containerRect.width - 515 - (numColumns * (invaderSize + spacing)) - 20;
 
       const shuffledProfiles = shuffle([...uniqueInvaderProfiles]);
       const newInvaders = [];
@@ -515,13 +560,18 @@ useEffect(() => {
 
   return (
     <GameContainer ref={containerRef} onMouseMove={handleMouseMove} onClick={handleShoot}>
-      <Description />
+      <Description>
+        <DescriptionIcon />
+        <FrontEnd />
+        <BackEnd />
+        <CloudDevops />
+        <Management />
+      </Description>
       <GameBorder />
-      
       <HUD>1UP</HUD>
       <Score>{score}</Score>
-      <HUD style={{ left: '65%' }}>HI-SCORE</HUD>
-      <Score style={{ left: '65%' }}>{highScore}</Score>
+      <HUD style={{ left: '60%' }}>HI-SCORE</HUD>
+      <Score style={{ left: '60%' }}>{highScore}</Score>
       <Ship $left={shipPosition.left} $top={shipPosition.top} />
       {bullets.map((bullet) => (
         <Bullet key={bullet.id} $left={bullet.left} $top={bullet.top} />
