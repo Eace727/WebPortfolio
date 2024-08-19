@@ -1,0 +1,19 @@
+  @font-face {
+    font-family: 'Emulogic';
+    src: url('../assets/emulogic.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    position:
+  }
+
+  @keyframes rainbowTwinkle {
+    0% { background-color: red; }
+    14.2% { background-color: orange; }
+    28.5% { background-color: yellow; }
+    42.8% { background-color: green; }
+    57.1% { background-color: blue; }
+    71.4% { background-color: indigo; }
+    85.7% { background-color: violet; }
+    100% { background-color: red; }
+    
+  }

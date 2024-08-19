@@ -11,7 +11,7 @@ function App() {
         <div className='backgroundGrid'/>
             <div className='content'>
             <Navbar />
-            <h1 className='title'>Xavier</h1> 
+            <h1 className='title'>Galaga</h1> 
             <Galaga />
             </div>
       </div>

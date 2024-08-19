@@ -1,12 +1,28 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { shuffle } from 'lodash';
 import styled from 'styled-components';
-import shipImage from '../assets/spaceAssets/Ship.png';
-import bulletImage from '../assets/spaceAssets/bullet.png';
-import shootSound from '../assets/spaceAssets/FighterBullet.mp3';
-import killSound from '../assets/spaceAssets/killSound.mp3';
-import killSound2 from '../assets/spaceAssets/killSound2.mp3';
-import python from '../assets/icons/python.svg';
+import './Galaga.css';
+import {
+  shipImage,
+  bulletImage,
+  defaultinvader,
+  shootSound,
+  killSound,
+  killSound2,
+  c,
+  c3,
+  c4,
+  java,
+  js,
+  python,
+  ts,
+  html,
+  css,
+  nodejs,
+  react,
+  npm
+} from '../assets/index';
+
 
 // Styled components
 const GameContainer = styled.div`
@@ -14,15 +30,27 @@ const GameContainer = styled.div`
   height: 400px;
   position: relative;
   overflow: hidden;
-  //background-color: #000;
+  background-color: #000;
+  border: 2px solid #ffffff;
 `;
 
 const GameBorder = styled.div`
-  width: 32%;
-  height: 395px;
-  position: relative;
+  width: 30.4%;
+  height: 396px;
+  position: static;
   overflow: hidden;
   border: 2px solid #ffffff28;
+`;
+
+const Description = styled.div`
+top: 80px;
+left: 34%;
+width: 39%;
+height: 275px;
+position: absolute;
+overflow: hidden;
+border: 2px solid #ffffff;
+border-radius: 50px;
 `;
 
 const Ship = styled.div.attrs((props) => ({
@@ -57,7 +85,7 @@ const Invader = styled.div.attrs((props) => ({
   style: {
     left: `${props.$left}px`,
     top: `${props.$top}px`,
-    backgroundImage: `url(${props.$image})`,
+    backgroundImage: `url(${props.$image}), linear-gradient(to bottom, #ffffff, #CEC2D650)`,
     backgroundColor: props.$color,
     opacity: props.$opacity,
   },
@@ -74,7 +102,7 @@ const Invader = styled.div.attrs((props) => ({
   font-weight: bold;
   background-size: cover;
   background-position: center;
-  border: 2px solid white;
+  transition: opacity 0.5s ease-in-out;
 `;
 
 const Timer = styled.div.attrs((props) => ({
@@ -88,19 +116,37 @@ const Timer = styled.div.attrs((props) => ({
 
 `;
 
+const HUD = styled.div`
+  position: absolute;
+  top: 0px;
+  left: 32%;
+  color: red;
+  font-size: 20px;
+  font-family: 'Emulogic', sans-serif;
+`;
+
+const Score = styled.div`
+  position: absolute;
+  top: 25px;
+  left: 32%;
+  color: white;
+  font-size: 20px;
+  font-family: 'Emulogic', sans-serif;
+  `;
+
 const uniqueInvaderProfiles = [
-  { id: 1, image: 'path/to/image1.png', color: 'red', velocityY: 1 },
-  { id: 2, image: 'path/to/image2.png', color: 'blue', velocityY: -1 },
-  { id: 3, image: 'path/to/image3.png', color: 'green', velocityY: 1 },
-  { id: 4, image: 'path/to/image4.png', color: 'yellow', velocityY: -1 },
-  { id: 5, image: 'path/to/image5.png', color: 'purple', velocityY: 1 },
-  { id: 6, image: 'path/to/image6.png', color: 'orange', velocityY: -1 },
-  { id: 7, image: 'path/to/image7.png', color: 'pink', velocityY: 1 },
-  { id: 8, image: 'path/to/image8.png', color: 'cyan', velocityY: -1 },
-  { id: 9, image: 'path/to/image9.png', color: 'magenta', velocityY: 1 },
-  { id: 10, image: 'path/to/image10.png', color: 'lime', velocityY: -1 },
-  { id: 11, image: 'path/to/image11.png', color: 'teal', velocityY: 1 },
-  { id: 12, image: 'path/to/image12.png', color: 'brown', velocityY: -1 },
+  { id: 1, image: python },
+  { id: 2, image: c },
+  { id: 3, image: c3 },
+  { id: 4, image: c4 },
+  { id: 5, image: java },
+  { id: 6, image: js },
+  { id: 7, image: ts },
+  { id: 8, image: html },
+  { id: 9, image: css },
+  { id: 10, image: react },
+  { id: 11, image: nodejs },
+  { id: 12, image: npm },
 ];
 
 
@@ -112,8 +158,43 @@ const Galaga = () => {
   const [timers, setTimers] = useState([]);
   const [bullets, setBullets] = useState([]);
   const [canShoot, setCanShoot] = useState(true);
+  const [score, setScore] = useState(0);
+  const [highScore, setHighScore] = useState(parseInt(localStorage.getItem("highScore"), 10) || 0);
+  const [respawing, setRespawning] = useState(false);
   const requestRef = useRef();
   const containerRef = useRef();
+  const lastBulletId = useRef(0);
+
+  // Initialize invaders
+  const initializeInvaders = useCallback(() => {
+    const numColumns = 3;
+    const numRows = 4;
+    const invaderSize = 70;
+    const spacing = 25;
+    const defaultProfile = { image: defaultinvader};
+  
+    const containerRect = containerRef.current.getBoundingClientRect();
+    const startX = containerRect.width - (numColumns * (invaderSize + spacing)) - 20;
+  
+    const shuffledProfiles = shuffle([...uniqueInvaderProfiles]);
+    const newInvaders = [];
+  
+      for (let col = 0; col < numColumns; col++) {
+        for (let row = 0; row < numRows; row++) {
+          const profile = shuffledProfiles.length > 0 ? shuffledProfiles.pop() : defaultProfile;
+    
+          newInvaders.push({
+            id: col * numRows + row + 1,
+            left: startX + col * (invaderSize + spacing),
+            top: 20 + row * (invaderSize + spacing),
+            image: profile.image,
+            velocityY: 0.5 * (col % 2 === 0 ? 1 : -1),
+          });
+        }
+      }
+  
+    setInvaders(newInvaders);
+  }, []);
 
   // Initialize timers
   const initializeTimers = useCallback(() => {
@@ -132,47 +213,14 @@ const Galaga = () => {
         newTimers.push({
           id: col * numRows + row + 1,
           left: startX + col * (invaderSize + spacing),
-          top: 20.5 + row * (invaderSize + spacing),
-          velocityY: 1.5, // Alternating direction per column
+          top: 20 + row * (invaderSize + spacing),
+          velocityY: 0.5,
         });
       }
     }
 
     setTimers(newTimers);
-  }, []);
-
-  // Initialize invaders
-  const initializeInvaders = useCallback(() => {
-    const numColumns = 6;
-    const numRows = 4;
-    const invaderSize = 70;
-    const spacing = 25;
-    const defaultProfile = { image: python, color: 'white', velocityY: 0.5 };
-  
-    const containerRect = containerRef.current.getBoundingClientRect();
-    const startX = containerRect.width - (numColumns * (invaderSize + spacing)) - 20;
-  
-    const shuffledProfiles = shuffle([...uniqueInvaderProfiles]);
-    const newInvaders = [];
-  
-    for (let col = 0; col < numColumns; col++) {
-      for (let row = 0; row < numRows; row++) {
-        const profile = shuffledProfiles.length > 0 ? shuffledProfiles.pop() : defaultProfile;
-  
-        newInvaders.push({
-          id: col * numRows + row + 1,
-          left: startX + col * (invaderSize + spacing),
-          top: 20 + row * (invaderSize + spacing),
-          image: profile.image,
-          color: profile.color,
-          velocityY: 0.5 * (col % 2 === 0 ? 1 : -1),
-        });
-      }
-    }
-  
-    setInvaders(newInvaders);
-  }, []);
-  
+  }, []);  
 
   useEffect(() => {
     initializeInvaders();
@@ -187,7 +235,7 @@ const Galaga = () => {
       const updatedTimers = currentTimers.map((timer) => {
         let newTop = timer.top + timer.velocityY;
   
-        if (newTop <= 0 || newTop + 30  >= containerRef.current.clientHeight) {
+        if (newTop <= 0 || newTop + 74  >= containerRef.current.clientHeight) {
           // Reverse direction of all timers
           newVelocityY = timer.velocityY * -1;
           globalVelocityChange = true; // Indicate that we need to change all timers' and invaders' velocity
@@ -227,7 +275,7 @@ const Galaga = () => {
 
 
   const moveObjects = useCallback(() => {
-    const bulletSpeed = 20;
+    const bulletSpeed = 15;
     const containerRect = containerRef.current.getBoundingClientRect();
 
     setBullets((currentBullets) =>
@@ -252,9 +300,13 @@ const Galaga = () => {
   // Handle shooting
   const handleShoot = useCallback(() => {
     if (canShoot) {
-      const audio = new Audio(shootSound);
-      audio.play();
-
+      try {
+        const audio = new Audio(shootSound);
+        audio.play();
+      } catch (error) {
+        console.error('Audio playback failed:', error);
+      }
+  
       setBullets((prevBullets) => [
         ...prevBullets,
         { id: Date.now(), left: shipPosition.left + 80, top: shipPosition.top + 12 },
@@ -263,15 +315,16 @@ const Galaga = () => {
       setTimeout(() => setCanShoot(true), 150);
     }
   }, [canShoot, shipPosition]);
+  
 
   // Handle mouse movement
   const handleMouseMove = useCallback((e) => {
     const containerRect = containerRef.current.getBoundingClientRect();
     const newX = e.clientX - containerRect.left - 25;
-    const newY = e.clientY - containerRect.top - 25;
+    const newY = e.clientY - containerRect.top - 50;
 
     const constrainedX = Math.max(-10, Math.min(newX, containerRect.width - containerRect.width / 4 * 3));
-    const constrainedY = Math.max(-5, Math.min(newY, containerRect.height - 100));
+    const constrainedY = Math.max(-5, Math.min(newY, containerRect.height - 90));
 
     setTargetShipPosition({ left: constrainedX, top: constrainedY });
   }, []);
@@ -283,16 +336,16 @@ const Galaga = () => {
         const deltaX = targetPosition.left - prevPosition.left;
         const deltaY = targetPosition.top - prevPosition.top;
         return {
-          left: prevPosition.left + deltaX * 0.2,
-          top: prevPosition.top + deltaY * 0.2,
+          left: prevPosition.left + deltaX * 0.3,
+          top: prevPosition.top + deltaY * 0.3,
         };
       });
 
       requestRef.current = requestAnimationFrame(smoothMoveShip);
     };
 
-    const animationId = requestAnimationFrame(smoothMoveShip);
-    return () => cancelAnimationFrame(animationId);
+    requestRef.current = requestAnimationFrame(smoothMoveShip);
+    return () => cancelAnimationFrame(requestRef.current);
   }, [targetShipPosition]);
 
   // Handle key press for shooting
@@ -308,65 +361,172 @@ const Galaga = () => {
   }, [handleShoot]);
 
 // Handle collision detection, invader respawn, and transparency logic
-const lastBulletId = useRef(0);
 
 useEffect(() => {
   bullets.forEach((bullet) => {
     setInvaders((currentInvaders) => {
-      return currentInvaders.map((invader) => {
+      const updatedInvaders = currentInvaders.map((invader) => {
         if (
           bullet.left + 20 >= invader.left &&
-          bullet.left <= invader.left + 20 &&
+          bullet.left <= invader.left + 50 &&
           bullet.top + 40 >= invader.top &&
           bullet.top <= invader.top + 40 &&
-          !invader.isShielded // Check if the invader is not shielded
+          !invader.isShielded
         ) {
           const audio = new Audio(Math.random() > 0.5 ? killSound : killSound2);
-          
-          bullet.id === lastBulletId.current ? lastBulletId.current = bullet.id : audio.play();
+
+          if (bullet.id === lastBulletId.current) {
+            audio.play();
+            setScore((prevScore) => prevScore + 50);
+          }
           lastBulletId.current = bullet.id;
 
-            setBullets((currentBullets) => currentBullets.filter((b) => b.id !== bullet.id));
+          setBullets((currentBullets) => currentBullets.filter((b) => b.id !== bullet.id));
 
-          // Mark invader as hit
-          const updatedInvader = {
+          return {
             ...invader,
             isHit: true,
-            opacity: 0.05, // Make the invader semi-transparent
+            opacity: 0.25, // Make the invader semi-transparent
             isShielded: true, // Make the invader immune to further hits
           };
-          // Set a timeout to revert the opacity and remove immunity
-          setTimeout(() => {
-            setInvaders((currentInvaders) =>
-              currentInvaders.map((inv) =>
-                inv.id === invader.id
-                  ? { ...inv, isHit: false, opacity: 1, isShielded: false }
-                  : inv
-              )
-            );
-          }, 2000); // 2 seconds immunity period
-
-          
-          return updatedInvader;
         }
-      
         return invader;
       });
+
+      // Check if all invaders are hit
+      if (updatedInvaders.every((invader) => invader.isHit)) {
+        handleRespawn();
+      }
+
+      return updatedInvaders;
     });
   });
 }, [bullets]);
 
+const handleRespawn = () => {
+  setRespawning(true);
 
+  // Fade out invaders
+  setInvaders((currentInvaders) =>
+    currentInvaders.map((invader) => ({
+      ...invader,
+      opacity: 0, // Set opacity to 0 to fade out
+    }))
+  );
+
+  // Wait for fade-out animation
+  setTimeout(() => {
+    // Randomize positions
+    setInvaders((currentTimers) => {
+      const numColumns = 3;
+      const numRows = 4;
+      const invaderSize = 70;
+      const spacing = 25;
+
+      const containerRect = containerRef.current.getBoundingClientRect();
+      const startX = containerRect.width - (numColumns * (invaderSize + spacing)) - 20;
+
+      const shuffledProfiles = shuffle([...uniqueInvaderProfiles]);
+      const newInvaders = [];
+
+      for (let col = 0; col < numColumns; col++) {
+        for (let row = 0; row < numRows; row++) {
+          const profile = shuffledProfiles.length > 0 ? shuffledProfiles.pop() : { image: defaultinvader };
+
+          newInvaders.push({
+            id: col * numRows + row + 1,
+            left: startX + col * (invaderSize + spacing),
+            top: currentTimers[0].top + row * (invaderSize + spacing) + (col % 2 === 0 ? 0 : -2 * currentTimers[0].top + 40),
+            image: profile.image,
+            velocityY: currentTimers[0].velocityY * (col % 2 === 0 ? 1 : -1),
+            isHit: false,
+            isShielded: true,
+            opacity: 0, // Start with 0 opacity for fade-in effect
+          });
+        }
+      }
+
+      return newInvaders;
+    });
+
+    // Fade in invaders
+    setTimeout(() => {
+      setInvaders((currentInvaders) =>
+        currentInvaders.map((invader) => ({
+          ...invader,
+          opacity: 1, // Fade back in
+          isShielded: false, // Make the invader vulnerable again
+        }))
+      );
+      setRespawning(false);
+    }, 500); // Fade-in duration
+  }, 500); // Fade-out duration
+};
+
+useEffect(() => {
+  if (score > highScore) {
+    setHighScore(score);
+    localStorage.setItem("highScore", score);
+  }
+}, [score, highScore]);
+
+useEffect(() => {
+  const handleResize = () => {
+    initializeInvaders();
+    initializeTimers();
+  };
+
+  window.addEventListener('resize', handleResize);
+  return () => window.removeEventListener('resize', handleResize);
+}, [initializeInvaders, initializeTimers]);
+
+function setupStars() {
+  const starField = document.createElement('div');
+  starField.style.position = 'absolute';
+  starField.style.top = '0';
+  starField.style.left = '0';
+  starField.style.width = '100%';
+  starField.style.height = '100%';
+  starField.style.overflow = 'hidden';
+
+  for (let i = 0; i < 100; i++) {
+    const star = document.createElement('div');
+    const starY = Math.floor(Math.random() * containerRef.current.clientHeight);
+    const starX = Math.floor(Math.random() * containerRef.current.clientWidth);
+    star.style.position = 'absolute';
+    star.style.top = `${starY}px`;
+    star.style.left = `${starX}px`;
+    star.style.width = '2px';
+    star.style.height = '2px';
+    star.style.backgroundColor = 'white';
+    star.style.animation = `rainbowTwinkle ${Math.random() * 3 + 2}s infinite ease-in-out`; // Randomize the duration
+    starField.appendChild(star);
+  }
+
+  containerRef.current.appendChild(starField);
+}
+
+
+
+useEffect(() => {
+  setupStars();
+}, []);
 
 
   return (
     <GameContainer ref={containerRef} onMouseMove={handleMouseMove} onClick={handleShoot}>
+      <Description />
       <GameBorder />
+      
+      <HUD>1UP</HUD>
+      <Score>{score}</Score>
+      <HUD style={{ left: '65%' }}>HI-SCORE</HUD>
+      <Score style={{ left: '65%' }}>{highScore}</Score>
       <Ship $left={shipPosition.left} $top={shipPosition.top} />
       {bullets.map((bullet) => (
         <Bullet key={bullet.id} $left={bullet.left} $top={bullet.top} />
       ))}
-      {invaders.map((invader, index) => (
+      {invaders.map((invader) => (
         <Invader
           key={invader.id}
           $color={invader.color}
@@ -375,7 +535,6 @@ useEffect(() => {
           $image={invader.image}
           $opacity={invader.opacity}
         >
-          {index} {/* Display the invader ID */}
         </Invader>
       ))}
       {timers.map((timer) => (
@@ -393,8 +552,4 @@ useEffect(() => {
 
 export default Galaga;
 
-// todo
-// add score
-// add hud
-// add respawn system
-// invader sprites
+
