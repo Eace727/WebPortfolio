@@ -55,7 +55,7 @@ border-radius: 50px;
 
 const DescriptionIcon = styled.div.attrs((props) => ({
   style: {
-    backgroundImage: `url(${defaultinvader}), linear-gradient(to bottom, #0000ff, #CEC2D6)`,
+    backgroundImage: `url(${defaultinvader}), linear-gradient(to bottom, #0000ff, #FF0000)`,
   }}))`
   left: 20px;
   top: 20px;
@@ -66,36 +66,31 @@ const DescriptionIcon = styled.div.attrs((props) => ({
   border-radius: 30px;
 `;
 
-const FrontEnd = styled.div.attrs((props) => ({
+const SkillContainer = styled.div.attrs((props) => ({
   style: {
   }
 }))`
   position: absolute;
   left: 30%;
   top: 20px;
-  width: 64%;
-  height: 40%;
+  width: 66%;
+  height: 25%;
   border: 2px solid #ffffff;
-  border-radius: 20px;
+  border-radius: 30px;
+  background-image: linear-gradient(to bottom, #0000ff, #ff0000);
 `;
 
-const BackEnd = styled.div.attrs((props) => ({
+const SmallSkillContainer = styled.div.attrs((props) => ({
   style: {
   }
 }))`
-`;
-
-const CloudDevops = styled.div.attrs((props) => ({
-  style: {
-
-  }
-}))`
-`;
-
-const Management = styled.div.attrs((props) => ({
-  style: {
-  }
-}))`
+  position: absolute;
+  left: 30%;
+  top: 180px;
+  width: 32%;
+  height: 28%;
+  border: 2px solid #ffffff;
+  border-radius: 30px;
 `;
 
 const Ship = styled.div.attrs((props) => ({
@@ -562,10 +557,14 @@ useEffect(() => {
     <GameContainer ref={containerRef} onMouseMove={handleMouseMove} onClick={handleShoot}>
       <Description>
         <DescriptionIcon />
-        <FrontEnd />
-        <BackEnd />
-        <CloudDevops />
-        <Management />
+        <SkillContainer>
+        <h1 style={{ color: 'white', textAlign: 'center', fontSize: '20px', fontFamily: 'Emulogic', marginTop: '2px' }}>FRONTEND</h1>
+        </SkillContainer>
+        <SkillContainer style={{ top: '100px', backgroundImage: 'linear-gradient(to bottom, #0000ff, #ffffff)' }}>
+          <h1 style={{ color: 'white', textAlign: 'center', fontSize: '20px', fontFamily: 'Emulogic', marginTop: '2px' }}>BACKEND</h1>
+        </SkillContainer>
+        <SmallSkillContainer />
+        <SmallSkillContainer style={{left: '325px'}} />
       </Description>
       <GameBorder />
       <HUD>1UP</HUD>
