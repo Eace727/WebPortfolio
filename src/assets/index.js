@@ -16,7 +16,8 @@ import css from './icons/css.svg';
 import nodejs from './icons/nodejs.svg';
 import react from './icons/react.svg';
 import npm from './icons/npm.svg';
+import github from './icons/github.svg';
 
-export { shipImage, bulletImage, defaultinvader, shootSound, killSound, killSound2, c, c3, c4, java, js, python, ts, html, css, nodejs, react, npm };
+export { shipImage, bulletImage, defaultinvader, shootSound, killSound, killSound2, c, c3, c4, java, js, python, ts, html, css, nodejs, react, npm, github };
 
 

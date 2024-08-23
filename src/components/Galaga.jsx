@@ -20,8 +20,10 @@ import {
   css,
   nodejs,
   react,
-  npm
+  npm,
+  github
 } from '../assets/index';
+import ScrollUI from './ScrollUI';
 
 
 // Styled components
@@ -44,7 +46,7 @@ const GameBorder = styled.div`
 
 const Description = styled.div`
 top: 80px;
-left: 60%;
+left: 60.5%;
 width: 38%;
 height: 280px;
 position: absolute;
@@ -91,6 +93,7 @@ const SmallSkillContainer = styled.div.attrs((props) => ({
   height: 28%;
   border: 2px solid #ffffff;
   border-radius: 30px;
+  background-image: linear-gradient(to bottom, #0000ff, #ff0000);
 `;
 
 const Ship = styled.div.attrs((props) => ({
@@ -142,7 +145,6 @@ const Invader = styled.div.attrs((props) => ({
   font-weight: bold;
   background-size: cover;
   background-position: center;
-  transition: opacity 0.5s ease-in-out;
 `;
 
 const Timer = styled.div.attrs((props) => ({
@@ -187,6 +189,7 @@ const uniqueInvaderProfiles = [
   { id: 10, image: react },
   { id: 11, image: nodejs },
   { id: 12, image: npm },
+  { id: 13, image: github },
 ];
 
 
@@ -200,7 +203,7 @@ const Galaga = () => {
   const [canShoot, setCanShoot] = useState(true);
   const [score, setScore] = useState(0);
   const [highScore, setHighScore] = useState(parseInt(localStorage.getItem("highScore"), 10) || 0);
-  const [respawing, setRespawning] = useState(false);
+  const [, setRespawning] = useState(false);
   const requestRef = useRef();
   const containerRef = useRef();
   const lastBulletId = useRef(0);
@@ -426,7 +429,7 @@ useEffect(() => {
           return {
             ...invader,
             isHit: true,
-            opacity: 0.25, // Make the invader semi-transparent
+            opacity: 0, // Make the invader semi-transparent
             isShielded: true, // Make the invader immune to further hits
           };
         }
@@ -482,6 +485,7 @@ const handleRespawn = () => {
             isHit: false,
             isShielded: true,
             opacity: 0, // Start with 0 opacity for fade-in effect
+            transition: 'opacity 0.5s ease-in-out',
           });
         }
       }
@@ -553,17 +557,21 @@ useEffect(() => {
 }, []);
 
 
+
   return (
     <GameContainer ref={containerRef} onMouseMove={handleMouseMove} onClick={handleShoot}>
       <Description>
         <DescriptionIcon />
         <SkillContainer>
         <h1 style={{ color: 'white', textAlign: 'center', fontSize: '20px', fontFamily: 'Emulogic', marginTop: '2px' }}>FRONTEND</h1>
+        <ScrollUI />
         </SkillContainer>
         <SkillContainer style={{ top: '100px', backgroundImage: 'linear-gradient(to bottom, #0000ff, #ffffff)' }}>
           <h1 style={{ color: 'white', textAlign: 'center', fontSize: '20px', fontFamily: 'Emulogic', marginTop: '2px' }}>BACKEND</h1>
         </SkillContainer>
-        <SmallSkillContainer />
+        <SmallSkillContainer>
+          <h1 style={{ color: 'white', textAlign: 'center', fontSize: '12px', fontFamily: 'Emulogic', marginTop: '2px' }}>CLOUD/DEVOPS</h1>
+        </SmallSkillContainer>
         <SmallSkillContainer style={{left: '325px'}} />
       </Description>
       <GameBorder />
