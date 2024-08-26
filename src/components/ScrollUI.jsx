@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React from 'react';
 import styled, { keyframes } from 'styled-components';
 import {
@@ -23,6 +24,7 @@ const images = [
     c4,
     java,
     js,
+    python,
   // Add more URLs as needed
 ];
 
