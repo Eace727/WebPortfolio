@@ -13,6 +13,18 @@
     57.1% { background-color: blue; }
     71.4% { background-color: indigo; }
     85.7% { background-color: violet; }
-    100% { background-color: red; }
-    
+    100% { background-color: red; } 
   }
+
+.skillContainerBig {
+  color: white;
+  text-align: center;
+  font-size: 20px;
+  font-family: 'Emulogic';
+  margin-top: 2px;
+  flex-shrink: inherit;
+};
+
+.skillContainerSmall {
+
+};

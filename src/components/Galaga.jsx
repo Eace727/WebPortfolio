@@ -217,7 +217,7 @@ const Galaga = () => {
     const defaultProfile = { image: defaultinvader};
   
     const containerRect = containerRef.current.getBoundingClientRect();
-    const startX = containerRect.width - 515 - (numColumns * (invaderSize + spacing)) - 20;
+    const startX = containerRect.width - containerRect.width / 5 * 2 - (numColumns * (invaderSize + spacing)) - 20;
   
     const shuffledProfiles = shuffle([...uniqueInvaderProfiles]);
     const newInvaders = [];
@@ -467,7 +467,7 @@ const handleRespawn = () => {
       const spacing = 25;
 
       const containerRect = containerRef.current.getBoundingClientRect();
-      const startX = containerRect.width - 515 - (numColumns * (invaderSize + spacing)) - 20;
+      const startX = containerRect.width - containerRect.width / 5 * 2 - (numColumns * (invaderSize + spacing)) - 20;
 
       const shuffledProfiles = shuffle([...uniqueInvaderProfiles]);
       const newInvaders = [];
@@ -563,7 +563,7 @@ useEffect(() => {
       <Description>
         <DescriptionIcon />
         <SkillContainer>
-        <h1 style={{ color: 'white', textAlign: 'center', fontSize: '20px', fontFamily: 'Emulogic', marginTop: '2px' }}>FRONTEND</h1>
+        <h1 className='skillContainerBig'>FRONTEND</h1>
         <ScrollUI />
         </SkillContainer>
         <SkillContainer style={{ top: '100px', backgroundImage: 'linear-gradient(to bottom, #0000ff, #ffffff)' }}>
@@ -572,7 +572,7 @@ useEffect(() => {
         <SmallSkillContainer>
           <h1 style={{ color: 'white', textAlign: 'center', fontSize: '12px', fontFamily: 'Emulogic', marginTop: '2px' }}>CLOUD/DEVOPS</h1>
         </SmallSkillContainer>
-        <SmallSkillContainer style={{left: '325px'}} />
+        <SmallSkillContainer style={{left: '63%'}} />
       </Description>
       <GameBorder />
       <HUD>1UP</HUD>
