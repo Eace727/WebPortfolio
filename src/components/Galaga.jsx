@@ -226,13 +226,13 @@ const Galaga = () => {
         for (let row = 0; row < numRows; row++) {
           const profile = shuffledProfiles.length > 0 ? shuffledProfiles.pop() : defaultProfile;
     
-          newInvaders.push({
+            newInvaders.push({
             id: col * numRows + row + 1,
             left: startX + col * (invaderSize + spacing),
             top: 20 + row * (invaderSize + spacing),
             image: profile.image,
-            velocityY: 0.5 * (col % 2 === 0 ? 1 : -1),
-          });
+            velocityY: (col % 2 === 0 ? 1 : -1) * (containerRect.width / 3000),
+            });
         }
       }
   
@@ -247,8 +247,7 @@ const Galaga = () => {
     const spacing = 25;
 
     const containerRect = containerRef.current.getBoundingClientRect();
-    const startX = containerRect.width - (numColumns * (invaderSize + spacing)) - 20;
-
+    const startX = containerRect.width - containerRect.width / 5 * 2 - (numColumns * (invaderSize + spacing)) - 20;
     const newTimers = [];
 
     for (let col = 0; col < numColumns; col++) {
@@ -257,7 +256,7 @@ const Galaga = () => {
           id: col * numRows + row + 1,
           left: startX + col * (invaderSize + spacing),
           top: 20 + row * (invaderSize + spacing),
-          velocityY: 0.5,
+          velocityY: (containerRect.width / 3000),
         });
       }
     }
@@ -318,7 +317,7 @@ const Galaga = () => {
 
 
   const moveObjects = useCallback(() => {
-    const bulletSpeed = 15;
+    const bulletSpeed = 10;
     const containerRect = containerRef.current.getBoundingClientRect();
 
     setBullets((currentBullets) =>
