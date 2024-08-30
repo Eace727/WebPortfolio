@@ -147,17 +147,6 @@ const Invader = styled.div.attrs((props) => ({
   background-position: center;
 `;
 
-const Timer = styled.div.attrs((props) => ({
-  style: {
-    left: `${props.$left}px`,
-    top: `${props.$top}px`,
-  }
-}))`
-  width: 70px;
-  height: 70px;
-
-`;
-
 const HUD = styled.div`
   position: absolute;
   top: 0px;
@@ -192,13 +181,13 @@ const uniqueInvaderProfiles = [
   { id: 13, image: github },
 ];
 
-
 // Galaga component
 const Galaga = () => {
-  const [shipPosition, setShipPosition] = useState({ left: 10, top: 150 });
-  const [targetShipPosition, setTargetShipPosition] = useState({ left: 10, top: 150 });
-  const [invaders, setInvaders] = useState([]);
-  const [timers, setTimers] = useState([]);
+  const [shipPosition, setShipPosition] = useState({ left: 10, top: 150 }); // Initial ship position
+  const [targetShipPosition, setTargetShipPosition] = useState({ left: 10, top: 150 }); // Initial target ship position
+  const [invaders, setInvaders] = useState([]); // initialInvaders should be defined with initial positions
+  const [direction] = useState(1); // 1 for right, -1 for left
+  const [speed] = useState(0.2); // Adjust speed as needed
   const [bullets, setBullets] = useState([]);
   const [canShoot, setCanShoot] = useState(true);
   const [score, setScore] = useState(0);
@@ -229,9 +218,9 @@ const Galaga = () => {
             newInvaders.push({
             id: col * numRows + row + 1,
             left: startX + col * (invaderSize + spacing),
-            top: 20 + row * (invaderSize + spacing),
+            top: 20 + row * (invaderSize + spacing + 5),
             image: profile.image,
-            velocityY: (col % 2 === 0 ? 1 : -1) * (containerRect.width / 3000),
+            velocityY: (col % 2 === 0 ? 1 : -1) * 0.1,
             });
         }
       }
@@ -239,82 +228,24 @@ const Galaga = () => {
     setInvaders(newInvaders);
   }, []);
 
-  // Initialize timers
-  const initializeTimers = useCallback(() => {
-    const numColumns = 1;
-    const numRows = 4;
-    const invaderSize = 70;
-    const spacing = 25;
-
-    const containerRect = containerRef.current.getBoundingClientRect();
-    const startX = containerRect.width - containerRect.width / 5 * 2 - (numColumns * (invaderSize + spacing)) - 20;
-    const newTimers = [];
-
-    for (let col = 0; col < numColumns; col++) {
-      for (let row = 0; row < numRows; row++) {
-        newTimers.push({
-          id: col * numRows + row + 1,
-          left: startX + col * (invaderSize + spacing),
-          top: 20 + row * (invaderSize + spacing),
-          velocityY: (containerRect.width / 3000),
-        });
-      }
-    }
-
-    setTimers(newTimers);
-  }, []);  
-
   useEffect(() => {
     initializeInvaders();
-    initializeTimers();
-  }, [initializeInvaders, initializeTimers]);
+  }, [initializeInvaders]);
 
   const updateInvadersPosition = useCallback(() => {
-    setTimers((currentTimers) => {
-      let globalVelocityChange = false;
-      let newVelocityY = 0;
-  
-      const updatedTimers = currentTimers.map((timer) => {
-        let newTop = timer.top + timer.velocityY;
-  
-        if (newTop <= 0 || newTop + 74  >= containerRef.current.clientHeight) {
-          // Reverse direction of all timers
-          newVelocityY = timer.velocityY * -1;
-          globalVelocityChange = true; // Indicate that we need to change all timers' and invaders' velocity
-        }
-  
-        return { ...timer, top: newTop, velocityY: globalVelocityChange ? newVelocityY : timer.velocityY };
+    setInvaders(prevInvaders => {
+      const containerRect = containerRef.current.getBoundingClientRect();
+      const newInvaders = prevInvaders.map((invader, index) => {
+        const newTop = invader.top + (index % 8 >= 4 ? direction : -direction) * speed;
+        return {
+          ...invader,
+          top: newTop < 0 ? containerRect.height : newTop > containerRect.height ? 0 : newTop,
+        };
       });
-  
-      if (globalVelocityChange) {
-        // Apply the velocity change to all timers and invaders
-        setTimers((currentTimers) => {
-          return currentTimers.map((timer) => ({
-            ...timer,
-            velocityY: newVelocityY,
-          }));
-        });
-  
-        setInvaders((currentInvaders) => {
-          return currentInvaders.map((invader) => ({
-            ...invader,
-            velocityY: invader.velocityY * -1,
-          }));
-        });
-      }
-  
-      return updatedTimers;
-    });
-  
-    setInvaders((currentInvaders) => {
-      return currentInvaders.map((invader) => ({
-        ...invader,
-        top: invader.top + invader.velocityY,
-      }));
-    });
-  }, []);
-  
 
+      return newInvaders;
+    });
+  }, [direction, speed]);
 
   const moveObjects = useCallback(() => {
     const bulletSpeed = 10;
@@ -459,7 +390,7 @@ const handleRespawn = () => {
   // Wait for fade-out animation
   setTimeout(() => {
     // Randomize positions
-    setInvaders((currentTimers) => {
+    setInvaders((currentInvaders) => {
       const numColumns = 4;
       const numRows = 4;
       const invaderSize = 70;
@@ -478,16 +409,15 @@ const handleRespawn = () => {
           newInvaders.push({
             id: col * numRows + row + 1,
             left: startX + col * (invaderSize + spacing),
-            top: currentTimers[0].top + row * (invaderSize + spacing) + (col % 2 === 0 ? 0 : -2 * currentTimers[0].top + 40),
+            top: 20 + row * (invaderSize + spacing + 5),
             image: profile.image,
-            velocityY: currentTimers[0].velocityY * (col % 2 === 0 ? 1 : -1),
             isHit: false,
             isShielded: true,
             opacity: 0, // Start with 0 opacity for fade-in effect
             transition: 'opacity 0.5s ease-in-out',
           });
         }
-      }
+      } // make more levels using respawn system
 
       return newInvaders;
     });
@@ -516,12 +446,11 @@ useEffect(() => {
 useEffect(() => {
   const handleResize = () => {
     initializeInvaders();
-    initializeTimers();
   };
 
   window.addEventListener('resize', handleResize);
   return () => window.removeEventListener('resize', handleResize);
-}, [initializeInvaders, initializeTimers]);
+}, [initializeInvaders]);
 
 function setupStars() {
   const starField = document.createElement('div');
@@ -592,15 +521,6 @@ useEffect(() => {
           $opacity={invader.opacity}
         >
         </Invader>
-      ))}
-      {timers.map((timer) => (
-        <Timer
-          key={timer.id}
-          $color={timer.color}
-          $top={timer.top}
-          $left={timer.left}
-        >
-        </Timer>
       ))}
     </GameContainer>
   );
